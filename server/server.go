@@ -6,7 +6,6 @@ import (
 	"strings"
 )
 func main(){
-	clients := []string{"START"}
 	
 	ln, err := net.Listen("tcp", ":12000")
 	if err != nil {
@@ -23,21 +22,13 @@ func main(){
 		}
 
 
-		go handleConn(conn, clients)
+		go handleConn(conn)
 
 	}
 }
-
-func addToArray(value string, clients []string){
-	clients = append(clients, value)
-	fmt.Println("added", len(clients))
-}
-
-
-func handleConn(conn net.Conn, clients []string){
+func handleConn(conn net.Conn){
 	defer conn.Close()
 
-	fmt.Println(clients)
 	
 	buffer := make([]byte, 1024)
 
@@ -45,16 +36,19 @@ func handleConn(conn net.Conn, clients []string){
 
 		n, err := conn.Read(buffer)
 		if err != nil {
-			addToArray("test", clients)
 			fmt.Println("not reading buffer")
 			return
 		}
 		data := string(buffer[:n])
 		dataToCheck := data[:5]
 		if strings.TrimSpace(dataToCheck) == "hello" {
-			fmt.Println("hello world")
-			clients = append(clients, data[6:])
-			fmt.Println(clients)
+			fmt.Println("hello world", data)
+			localAddr := conn.LocalAddr().String()
+			_, err := conn.Write([]byte(localAddr))
+			if err != nil {
+				fmt.Println("unable to write")
+				return
+			}
 		} else {
 			fmt.Println("string check")
 		}
