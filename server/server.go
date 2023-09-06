@@ -84,13 +84,26 @@ func main(){
 
 	}
 }
+
+func index(){
+	
+	fmt.Println("calling on index")
+}
+
+
 func handleConn(conn net.Conn){
+
+//this will pretty much be the main function
+//the "n" value will be put into the function handler and redirect it properly 
+// handleConn() -> funcHandle() -> function based off of buffer[:n] value 
 	defer conn.Close()
 
 	
 	buffer := make([]byte, 1024)
 
 	for {
+
+
 
 		n, err := conn.Read(buffer)
 		if err != nil {
