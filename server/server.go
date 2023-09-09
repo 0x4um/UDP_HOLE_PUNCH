@@ -114,7 +114,7 @@ func handleConn(conn net.Conn){
 
 		fmt.Println(data)
 
-		handler.Exec(data, n)
+		handler.Exec(data, n, conn)
 
 
 	}

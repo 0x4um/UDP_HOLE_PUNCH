@@ -6,8 +6,9 @@ import (
 	"net"
 )
 
-func function1() {
-	fmt.Println("function1 hello")
+func function1(conn net.Conn) {
+	conn.Write([]byte("return hello"))
+	fmt.Println("function1 hello from function1")
 }
 
 func function2() {
@@ -17,16 +18,17 @@ func function2() {
 func Exec(data string, n int, conn net.Conn) {
 	fmt.Println(data)
 	fmt.Println(n)
-	functions := map[string]func(){
-		"function1": function1,
-		"function2": function2,
-	}
+	// functions := map[string]func(){
+	// 	"function1": function1,
+	// 	"function2": function2,
+	// }
 	// buffer := make([]byte, 1024)
 	other := strings.TrimSpace(data)
 	fmt.Println(other, " other other")
-	if fn, exists := functions[other]; exists {
-		fn()
-	} else {
-		fmt.Println("func not found")
+	switch other {
+	case "function1":
+		function1(conn)
+	default:
+		fmt.Println("def")
 	}
 }
