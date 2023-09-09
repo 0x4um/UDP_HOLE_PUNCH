@@ -3,9 +3,10 @@ package main
 import (
 	"fmt"
 	"net"
-	"strings"
+	// "strings"
 	_ "github.com/mattn/go-sqlite3"
 	"database/sql"
+	"server/handler"
 )
 
 func checkTable(db *sql.DB, tableName string) (bool, error) {
@@ -103,25 +104,18 @@ func handleConn(conn net.Conn){
 
 	for {
 
-
-
 		n, err := conn.Read(buffer)
 		if err != nil {
-			fmt.Println("not reading buffer")
-			return
+			fmt.Println("error reading", conn.RemoteAddr())
+			return 
 		}
+
 		data := string(buffer[:n])
-		dataToCheck := data[:5]
-		if strings.TrimSpace(dataToCheck) == "hello" {
-			fmt.Println("hello world", data)
-			RemoteAddr := conn.RemoteAddr().String()
-			_, err := conn.Write([]byte(RemoteAddr))
-			if err != nil {
-				fmt.Println("unable to write")
-				return
-			}
-		} else {
-			fmt.Println("string check")
-		}
+
+		fmt.Println(data)
+
+		handler.Exec(data)
+
+
 	}
 }
