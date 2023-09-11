@@ -6,6 +6,10 @@ import (
 	"net"
 )
 
+func dialCheck(conn net.Conn){
+	fmt.Println("checking for dial")
+}
+
 func function1(conn net.Conn) {
 	conn.Write([]byte("return hello"))
 	fmt.Println("function1 hello from function1")
