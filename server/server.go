@@ -13,6 +13,8 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"log"
+	"encoding/json"
 	"io/ioutil"
 )
 
@@ -138,6 +140,13 @@ func main(){
 				fmt.Println("error", err)
 				return
 			}
+			newUuid, err := uuid.NewUUID()
+			if err != nil {
+				fmt.Println("error making uuid")
+				return
+			}
+		
+			fmt.Println(newUuid, " new uuid here")	
 
 			fmt.Println("file:")
 			fmt.Println(string(fileContents))
@@ -145,6 +154,21 @@ func main(){
 			//need a way to return the value of public ip to all incoming requests and then ask for 
 			// your own server ip
 			//outside user (ip included)=> server => outside user
+
+			stmt, err := db.Prepare("INSERT INTO general VALUES(NULL, ?, ?)")
+			if err != nil {
+				fmt.Println("error inserting data into genral table")
+				return
+			}
+			defer stmt.Close()
+
+			_, err = stmt.Exec(newUuid, string(fileContents))
+			if err != nil {
+				fmt.Println("error inserting")
+				return
+			}
+			fmt.Println("data is inserted")
+
 		}
 		
 		
@@ -156,8 +180,8 @@ func main(){
 			CREATE TABLE IF NOT EXISTS general (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			public_ip TEXT NOT NULL,
-			public_key TEXT NOT NULL,
-		)
+			public_key TEXT NOT NULL
+		);
 		`
 		
 		_, err := db.Exec(createTableSql)
@@ -165,23 +189,39 @@ func main(){
 			fmt.Println("unable to create table", err)
 			return
 		}
-		os.Exit(0)
+		main()
 		
 	}
 
-	rows, err := db.Query("SELECT id FROM users")
+	// rows, err := db.Query("SELECT id FROM users")
+	// if err != nil {
+	// 	fmt.Println("error select")
+	// 	return
+	// }
+	// defer rows.Close()
+
+	CONFIG, err := ioutil.ReadFile("./../config/config.json")
 	if err != nil {
-		fmt.Println("error select")
+		fmt.Println("error reading file")
 		return
 	}
-	defer rows.Close()
 
 
-	ln, err := net.Listen("tcp", ":12000")
+	var configData map[string]interface{}
+
+	if err := json.Unmarshal(CONFIG, &configData); err != nil {
+		log.Fatal("failed to unmarshal data", err)
+		return
+	}
+	listenPort := configData["port"].(string)
+	
+
+	ln, err := net.Listen("tcp", ":" + listenPort)
 	if err != nil {
 		fmt.Println("error starting")
 		return
 	}
+	fmt.Println("listening on", ":" + listenPort)
 	defer ln.Close()
 
 	for {
@@ -192,7 +232,7 @@ func main(){
 		}
 
 
-		go handleConn(conn)
+		go handleConn(conn, db)
 
 	}
 }
@@ -203,23 +243,23 @@ func index(){
 }
 
 
-func handleConn(conn net.Conn){
+func handleConn(conn net.Conn, db *sql.DB){
 //this will pretty much be the main function
 //the "n" value will be put into the function handler and redirect it properly 
 // handleConn() -> funcHandle() -> function based off of buffer[:n] value 
 	defer conn.Close()
+	// newUuid, err := uuid.NewUUID()
+	// if err != nil {
+	// 	fmt.Println("error making uuid")
+	// 	return
+	// }
 
+	// fmt.Println(newUuid, " new uuid hrer")
 	
 	buffer := make([]byte, 1024)
 
 	for {
-		newUuid, err := uuid.NewUUID()
-		if err != nil {
-			fmt.Println("error making uuid")
-			return
-		}
-
-		fmt.Println(newUuid)
+		
 
 		n, err := conn.Read(buffer)
 		if err != nil {
