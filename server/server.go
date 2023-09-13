@@ -63,6 +63,36 @@ func main(){
 
 	tableName := "general"
 
+	peertableExist, err := checkTable(db, "peertable")
+	if err != nil {
+		fmt.Println("error checking", err)
+		return
+	}
+
+	if peertableExist{
+		fmt.Println("peertable does exist")
+
+		
+	} else {
+		fmt.Println("peertable does not exists")
+		fmt.Println("creating one now...")
+		createPeerTableSQL := `
+		CREATE TABLE IF NOT EXISTS peertable (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			peer_uuid TEXT NOT NULL,
+			peer_ip TEXT NOT NULL,
+			peer_public_key TEXT NOT NULL
+		);
+		`
+		_, err := db.Exec(createPeerTableSQL)
+		if err != nil {
+			fmt.Println("peertable err")
+			return
+		}
+		main()
+	}
+
+
 	exists, err := checkTable(db, tableName)
 	if err != nil {
 		fmt.Println("error checking", err)
@@ -268,7 +298,7 @@ func handleConn(conn net.Conn, db *sql.DB){
 		}
 
 		data := string(buffer[:n])
-		handler.Exec(data, n, conn)
+		handler.Exec(data, n, conn, db)
 
 
 	}
