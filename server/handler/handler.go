@@ -30,7 +30,7 @@ func Exec(data string, n int, conn net.Conn) {
 	other := strings.TrimSpace(data)
 	fmt.Println(other, " other other")
 	switch other {
-	case "function1":
+	case "findpeer":
 		function1(conn)
 	default:
 		fmt.Println("def")
