@@ -1,6 +1,7 @@
 package main 
 
 import (
+	"os/user"
 	"fmt"
 	"net"
 	// "strings"
@@ -53,7 +54,16 @@ func checkForPublicSQL(db *sql.DB) (int, error) {
 }
 
 func main(){
-	
+	user, err := user.Current()
+	if err != nil {
+		fmt.Println("error with finding user id")
+		return
+	}
+	if user.Uid != "0" {
+		fmt.Println("this script requires root privs")
+		os.Exit(0)
+		return
+	}
 	db, err := sql.Open("sqlite3", "db.db")
 	if err != nil {
 		fmt.Println("error opening")
@@ -209,7 +219,7 @@ func main(){
 		createTableSql := `
 			CREATE TABLE IF NOT EXISTS general (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			public_ip TEXT NOT NULL,
+			public_uuid TEXT NOT NULL,
 			public_key TEXT NOT NULL
 		);
 		`

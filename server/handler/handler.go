@@ -19,6 +19,7 @@ func function1(conn net.Conn) {
 }
 
 func findPeers(db *sql.DB, conn net.Conn){
+	
 	checkForLocalPeersSQL := `SELECT peer_uuid, peer_ip, peer_public_key FROM peertable`
 	rows, err := db.Query(checkForLocalPeersSQL)
 	if err != nil {
@@ -43,8 +44,30 @@ func findPeers(db *sql.DB, conn net.Conn){
 		fmt.Println(peer_public_key)
 		fmt.Println(rowCount)
 	}
-	if rowCount > 1 {
+	if rowCount >= 1 {
 		fmt.Println("there are rows here")
+		fmt.Println("writing to peer nodes")
+		getPublicUUIDSQL := `SELECT public_uuid FROM general`
+		getPublicUUID, err := db.Query(getPublicUUIDSQL)
+		if err != nil {
+			fmt.Println("error getting uuid", err)
+			return
+		}
+		defer getPublicUUID.Close()
+		var peer_uuid string
+		for getPublicUUID.Next() {
+			//var public_uuid string
+			if err := getPublicUUID.Scan(&peer_uuid); err != nil {
+				fmt.Println(err)
+				return
+			}
+			fmt.Println(peer_uuid)
+
+			
+		}
+		fmt.Println("writing using", peer_uuid)
+		conn.Write([]byte("findpeer:" + peer_uuid))
+		
 	} else {
 		fmt.Println("check the boot strap node")
 		CONFIG, err := ioutil.ReadFile("./../config/config.json")
