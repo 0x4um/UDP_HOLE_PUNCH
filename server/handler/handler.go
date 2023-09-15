@@ -18,7 +18,7 @@ func function1(conn net.Conn) {
 	fmt.Println("function1 hello from function1")
 }
 
-func findPeers(db *sql.DB, conn net.Conn){
+func findPeers(db *sql.DB, conn net.Conn, localUUID string){
 	
 	checkForLocalPeersSQL := `SELECT peer_uuid, peer_ip, peer_public_key FROM peertable`
 	rows, err := db.Query(checkForLocalPeersSQL)
@@ -66,7 +66,7 @@ func findPeers(db *sql.DB, conn net.Conn){
 			
 		}
 		fmt.Println("writing using", peer_uuid)
-		conn.Write([]byte("findpeer:" + peer_uuid))
+		conn.Write([]byte("findpeer:" + peer_uuid + " LOCAL: " + localUUID))
 		
 	} else {
 		fmt.Println("check the boot strap node")
@@ -92,7 +92,9 @@ func findPeers(db *sql.DB, conn net.Conn){
 	}
 }
 
-func Exec(data string, n int, conn net.Conn, db *sql.DB) {
+func Exec(data string, n int, conn net.Conn, db *sql.DB, localUUID string) {
+	fmt.Println(localUUID + " local UUID")
+
 	fmt.Println(data)
 	fmt.Println(n)
 	// functions := map[string]func(){
@@ -117,7 +119,7 @@ func Exec(data string, n int, conn net.Conn, db *sql.DB) {
 	fmt.Println(other[:start], "start parse")
 	switch other[:start] {
 	case "findpeer":
-		findPeers(db, conn)
+		findPeers(db, conn, localUUID)
 	default:
 		fmt.Println("def")
 	}
