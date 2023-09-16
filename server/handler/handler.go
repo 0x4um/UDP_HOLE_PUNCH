@@ -18,7 +18,27 @@ func function1(conn net.Conn) {
 	fmt.Println("function1 hello from function1")
 }
 
-func findPeers(db *sql.DB, conn net.Conn, localUUID string){
+func newPeer(db *sql.DB, conn net.Conn, id string){
+	fmt.Println("new peer func")
+	fmt.Println("id id ", id)
+	altID := strings.TrimSpace(id)
+	getPeerTableSQL := `SELECT peer_uuid FROM peertable WHERE peer_uuid = ?`
+	stmt, err := db.Prepare(getPeerTableSQL)
+	if err != nil {
+		fmt.Println("error getting data from peertable", err)
+		return 
+	}
+	var done string
+	err = stmt.QueryRow(altID).Scan(&done)
+	if err != nil {
+		fmt.Println("error scanning value", err)
+		conn.Write([]byte("fuck you"))
+		return
+	}
+	fmt.Println(done)
+}
+
+func findPeers(db *sql.DB, conn net.Conn){
 	
 	checkForLocalPeersSQL := `SELECT peer_uuid, peer_ip, peer_public_key FROM peertable`
 	rows, err := db.Query(checkForLocalPeersSQL)
@@ -66,7 +86,7 @@ func findPeers(db *sql.DB, conn net.Conn, localUUID string){
 			
 		}
 		fmt.Println("writing using", peer_uuid)
-		conn.Write([]byte("findpeer:" + peer_uuid + " LOCAL: " + localUUID))
+		conn.Write([]byte("findpeer:" + peer_uuid))
 		
 	} else {
 		fmt.Println("check the boot strap node")
@@ -92,8 +112,7 @@ func findPeers(db *sql.DB, conn net.Conn, localUUID string){
 	}
 }
 
-func Exec(data string, n int, conn net.Conn, db *sql.DB, localUUID string) {
-	fmt.Println(localUUID + " local UUID")
+func Exec(data string, n int, conn net.Conn, db *sql.DB) {
 
 	fmt.Println(data)
 	fmt.Println(n)
@@ -117,9 +136,12 @@ func Exec(data string, n int, conn net.Conn, db *sql.DB, localUUID string) {
 	fmt.Println(start, "found here")
 	fmt.Println(other, " other other")
 	fmt.Println(other[:start], "start parse")
+	fmt.Println(other[start:], "id here")
 	switch other[:start] {
 	case "findpeer":
-		findPeers(db, conn, localUUID)
+		findPeers(db, conn)
+	case "newpeer":
+		newPeer(db, conn, other[(start + 1):])
 	default:
 		fmt.Println("def")
 	}

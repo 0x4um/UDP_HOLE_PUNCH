@@ -308,25 +308,8 @@ func handleConn(conn net.Conn, db *sql.DB){
 		}
 
 		data := string(buffer[:n])
-		pullPublicUUIDSQL := `SELECT public_uuid FROM general`
-		pullPublicUUID, err := db.Query(pullPublicUUIDSQL)
-		if err != nil {
-			fmt.Println("error find public id", err)
-			return
-		}
-		defer pullPublicUUID.Close()
-
-		var publicUUID string
-
-		for pullPublicUUID.Next() {
-			if err := pullPublicUUID.Scan(&publicUUID); err != nil {
-				fmt.Println(err)
-				return
-			}
-			fmt.Println(publicUUID)
-		}
-		fmt.Println(publicUUID)
-		handler.Exec(data, n, conn, db, publicUUID)
+		
+		handler.Exec(data, n, conn, db)
 
 
 	}
