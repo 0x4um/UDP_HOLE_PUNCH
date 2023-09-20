@@ -54,6 +54,34 @@ func checkForPublicSQL(db *sql.DB) (int, error) {
 }
 
 func main(){
+
+	WEB_CONFIG, err := ioutil.ReadFile("./../config/config.json")
+	if err != nil {
+		fmt.Println("error reading config file", err)
+		return 
+	}
+
+	var webData map[string]interface{}
+
+	if err := json.Unmarshal(WEB_CONFIG, &webData); err != nil {
+		fmt.Println("error with marshall", err)
+		return
+	}
+
+	test := webData["web_server"]
+	fmt.Println(test, "config web")
+	if test != true {
+		
+		fmt.Println("### web is offline")
+	} else {
+		fmt.Println("### web is online")
+		
+	}
+
+
+
+
+
 	user, err := user.Current()
 	if err != nil {
 		fmt.Println("error with finding user id")

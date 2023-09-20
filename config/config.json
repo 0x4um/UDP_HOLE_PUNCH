@@ -1,4 +1,7 @@
 {
-    "port": "12000"
+    "port": "12000",
+    "bootstrap": "",
+    "web_server": false,
+    "web_server_port": 8080
 
 }
